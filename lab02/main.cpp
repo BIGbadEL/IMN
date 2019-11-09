@@ -11,6 +11,13 @@ constexpr double dt = 0.1;
 constexpr double u0 = 1;
 constexpr double Tol = 1e-6;
 constexpr double alfa = Beta * N - my_gamma;
+constexpr double c1 =  0.5 - 1.732050808 / 6;
+constexpr double c2 =  0.5 + 1.732050808 / 6;
+constexpr double a11 = 0.25;
+constexpr double a12 = 0.25 - 1.732050808 / 6;
+constexpr double a21 = 0.25 + 1.732050808 / 6;
+constexpr double a22 = 0.25;
+constexpr double b = 0.5;
 
 struct Point {
   double x;
