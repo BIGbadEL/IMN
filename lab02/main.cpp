@@ -1,6 +1,7 @@
 #include <cmath>
 #include <iostream>
 #include <vector>
+#include <functional>
 
 constexpr double Beta = 0.001;
 constexpr int N = 500;
@@ -24,23 +25,17 @@ void vec_to_file(const std::vector<Point> &vec, const char *name) {
   fclose(file);
 }
 
-void picard(std::vector<Point> &u, std::vector<Point> &z) {
+void solution(std::vector<Point> &u, std::vector<Point> &z, std::function<double(double , double)> fun) {
   u.push_back(Point{0.0, u0});
-  auto u_n_plus_1 = [](double un, double u_mid) {
-    return un + dt / 2 *
-                    ((alfa * un - Beta * un * un) +
-                     (alfa * u_mid - Beta * u_mid * u_mid));
-  };
   for (double t = dt; t <= tmax; t += dt) {
     double u_next = u.back().y;
     int count = 0;
     double temp;
     do {
       temp = u_next;
-      u_next = u_n_plus_1(u.back().y, u_next);
+      u_next = fun(u.back().y, u_next);
       count++;
     } while (std::abs(u_next - temp) > Tol && count <= 20);
-
     u.push_back(Point{t, u_next});
   }
   for (auto el : u) {
@@ -51,8 +46,25 @@ void picard(std::vector<Point> &u, std::vector<Point> &z) {
 int main() {
   std::vector<Point> u;
   std::vector<Point> z;
-  picard(u, z);
+  auto picard_lambda = [](double un, double u_mid) {
+    return un + dt / 2 *
+                    ((alfa * un - Beta * un * un) +
+                     (alfa * u_mid - Beta * u_mid * u_mid));
+  };
+  solution(u, z, picard_lambda);
   vec_to_file(u, "u(t).dat");
   vec_to_file(z, "z(t).dat");
+  u.clear();
+  z.clear();
+  auto newton_lambda = [](double un, double u_mid) {
+    return u_mid - (u_mid - un -
+                    dt / 2. *
+                        ((alfa * un - Beta * un * un) +
+                         (alfa * u_mid - Beta * u_mid * u_mid))) /
+                       (1 - dt / 2.0 * ( alfa - 2 * Beta * u_mid));
+  };
+  solution(u , z, newton_lambda);
+  vec_to_file(u, "u(t)_new.dat");
+  vec_to_file(z, "z(t)_new.dat");
   return 0;
 }
