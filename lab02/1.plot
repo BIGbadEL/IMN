@@ -14,3 +14,10 @@ set yl "y(t)"
 
 p  "u(t)_new.dat", "z(t)_new.dat"
 
+set out "z2.png"
+
+set xl "t"
+set yl "y(t)"
+
+p  "u(t)_RK2.dat", "z(t)_RK2.dat"
+
