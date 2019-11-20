@@ -16,7 +16,7 @@ constexpr int tmax = 40;
 constexpr double alfa = 5.0;
 
 constexpr double f(double v) { return v; }
-constexpr double g( double x, double v) { return alfa * ( 1 - x * x) * v - x; }
+constexpr double g(double x, double v) { return alfa * (1 - x * x) * v - x; }
 
 Point trap_next(double xn, double vn, double dt, double alfa_local) {
     constexpr double a11 = 1;
@@ -24,8 +24,8 @@ Point trap_next(double xn, double vn, double dt, double alfa_local) {
     double x_next = xn;
     double v_next = vn;
     do {
-        const double a12 = - dt / 2;
-        const double a21 = - dt / 2.0 * ( - 2.0 * alfa_local * x_next * v_next - 1);
+        const double a12 = -dt / 2;
+        const double a21 = -dt / 2.0 * (-2.0 * alfa_local * x_next * v_next - 1);
         const double a22 = 1 - dt / 2 * alfa_local * (1 - x_next * x_next);
         const double F = x_next - xn - dt / 2 * (f(vn) + f(v_next));
         const double G = v_next - vn - dt / 2 * (g(xn, vn) + g(x_next, v_next));
@@ -33,8 +33,8 @@ Point trap_next(double xn, double vn, double dt, double alfa_local) {
         dv = ((-G) * a11 - (-F) * a21) / (a11 * a22 - a12 * a21);
         x_next += dx;
         v_next += dv;
-    } while(std::abs(dx) > 1e-10 && std::abs(dv) > 1e-10);
-    return Point{ x_next, v_next };
+    } while (std::abs(dx) > 1e-10 && std::abs(dv) > 1e-10);
+    return Point { x_next, v_next };
 }
 
 constexpr Point RK2_next(double xn, double vn, double dt, double alfa_local) {
@@ -55,7 +55,7 @@ constexpr double error(double x_2, double x_1, double loc_p) {
 }
 
 template <typename callable>
-void solution(double tol, const char* name,  callable fun) {
+void solution(double tol, const char* name, callable fun) {
     double t = 0.0;
     double dt = dt0;
     double xn = x0;
