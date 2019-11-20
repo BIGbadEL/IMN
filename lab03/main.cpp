@@ -7,20 +7,6 @@ struct Point {
     double x;
     double y;
 };
-
-struct my_file {
-public:
-    my_file(const char* name)
-        : _fptr(fopen(name, "wb")) {}
-    ~my_file() { fclose(_fptr); }
-    void lab03_print(double t, double dt, Point& p) {
-        fprintf(_fptr, "%f %f %f %f\n", t, dt, p.x, p.y);
-    }
-
-private:
-    FILE* _fptr = nullptr;
-};
-
 constexpr int p = 2;
 constexpr double x0 = 0.01;
 constexpr double v0 = 0.0;
@@ -32,15 +18,15 @@ constexpr double alfa = 5.0;
 constexpr double f(double v) { return v; }
 constexpr double g( double x, double v) { return alfa * ( 1 - x * x) * v - x; }
 
-Point trap_next(double xn, double vn, double dt, double alfa) {
+Point trap_next(double xn, double vn, double dt, double alfa_local) {
     constexpr double a11 = 1;
     double dx = 0.0, dv = 0.0;
     double x_next = xn;
     double v_next = vn;
     do {
         const double a12 = - dt / 2;
-        const double a21 = - dt / 2.0 * ( - 2.0 * alfa * x_next * v_next - 1);
-        const double a22 = 1 - dt / 2 * alfa * (1 - x_next * x_next);
+        const double a21 = - dt / 2.0 * ( - 2.0 * alfa_local * x_next * v_next - 1);
+        const double a22 = 1 - dt / 2 * alfa_local * (1 - x_next * x_next);
         const double F = x_next - xn - dt / 2 * (f(vn) + f(v_next));
         const double G = v_next - vn - dt / 2 * (g(xn, vn) + g(x_next, v_next));
         dx = ((-F) * a22 - (-G) * a12) / (a11 * a22 - a12 * a21);
@@ -51,9 +37,9 @@ Point trap_next(double xn, double vn, double dt, double alfa) {
     return Point{ x_next, v_next };
 }
 
-constexpr Point RK2_next(double xn, double vn, double dt, double alfa) {
+constexpr Point RK2_next(double xn, double vn, double dt, double alfa_local) {
     const double k1x = vn;
-    const double k1v = alfa * (1 - xn * xn) * vn - xn;
+    const double k1v = alfa_local * (1 - xn * xn) * vn - xn;
     const double k2x = vn + dt * k1v;
     const double k2v = g(xn + dt * k1x, vn + dt * k1v);
     return Point { xn + dt / 2 * (k1x + k2x), vn + dt / 2 * (k1v + k2v) };
@@ -74,7 +60,7 @@ void solution(double tol, const char* name,  callable fun) {
     double dt = dt0;
     double xn = x0;
     double vn = v0;
-    my_file file{name};
+    FILE* file = fopen(name, "wb");
     do {
         Point p_2 = fun(xn, vn, dt, alfa);
         p_2 = fun(p_2.x, p_2.y, dt, alfa);
@@ -86,10 +72,11 @@ void solution(double tol, const char* name,  callable fun) {
             t += 2 * dt;
             xn = p_2.x;
             vn = p_2.y;
-            file.lab03_print(t, dt, p_2);
+            fprintf(file, "%f %f %f %f\n", t, dt, p_2.x, p_2.y);
         }
         dt = new_dt(dt, Ex, Ev, tol);
     } while (t < tmax);
+    fclose(file);
 }
 
 int main() {

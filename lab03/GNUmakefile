@@ -26,6 +26,8 @@ clean:
 	rm -f *~
 	rm -f *.d
 	rm -f $(EXEC)
+	rm *.png
+	rm *.dat
 
 run: $(EXEC)
 	./$(EXEC)
