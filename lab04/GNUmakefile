@@ -29,5 +29,6 @@ clean:
 
 run: $(EXEC)
 	./$(EXEC)
+	gnuplot 4.plot
 
 -include $(DEPS)
