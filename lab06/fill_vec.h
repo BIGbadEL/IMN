@@ -30,9 +30,9 @@ constexpr std::size_t calc_i(const std::size_t l, const std::size_t j, const std
 void fill_vecs(std::size_t nx, std::size_t ny,
     const double e1, const double e2,
     std::vector<double>& b, std::vector<int>& ia,
-    std::vector<double>& a, std::vector<int>& ja, 
-    int& nz_num, const double V1, const double V2, 
-    const double V3,const double V4, bool is_zero = true) {
+    std::vector<double>& a, std::vector<int>& ja,
+    int& nz_num, const double V1, const double V2,
+    const double V3, const double V4, bool is_zero = true) {
     int k = -1;
     const std::size_t N = (nx + 1) * (ny + 1);
 
