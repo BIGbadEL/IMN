@@ -1,5 +1,6 @@
 #include <array>
 #include <cmath>
+#include <cstring>
 #include <iostream>
 #include <utility>
 
@@ -80,7 +81,49 @@ matrix<nx + 1, ny + 1> fill_psi() {
     return result;
 }
 
-void solution(double D) {
+void iter_p(matrix<nx + 1, ny + 1>& u0, matrix<nx + 1, ny + 1>& u1, const matrix<nx + 1, ny + 1>& vx, const matrix<nx + 1, ny + 1>& vy, const double dt, const double D, const int it_max) {
+    FILE* f = fopen(("out_" + std::to_string(D) + " " + std::to_string(dt) + ".dat").c_str(), "w");
+    for (int it = 1; it <= it_max; it++) {
+        for (int i = 0; i < u0.size(); i++) {
+            std::memcpy(u1[i].data(), u0[i].data(), u0[i].size() * sizeof(double));
+        }
+
+        for (int k = 1; k <= 20; k++) {
+            for (int i = 0; i <= nx; i++) {
+                for (int j = 1; j <= ny - 1; j++) {
+                    if (i > i1 && i < i2 && j < my_j1) {
+                        continue;
+                    }
+                    if (i == 0) {
+                        u1[i][j] = (1.0 / (1 + (2 * D * dt / pow(delta, 2)))) * (u0[i][j] - (dt / 2.0) * vx[i][j] * (((u0[i + 1][j] - u0[nx][j]) / (2.0 * delta)) + (u1[i + 1][j] - u1[nx][j]) / (2.0 * delta)) - (dt / 2) * vy[i][j] * ((u0[i][j + 1] - u0[i][j - 1]) / (2.0 * delta) + (u1[i][j + 1] - u1[i][j - 1]) / (2.0 * delta)) + dt / 2.0 * D * ((u0[i + 1][j] + u0[nx][j] + u0[i][j + 1] + u0[i][j - 1] - 4 * u0[i][j]) / pow(delta, 2) + (u1[i + 1][j] + u1[nx][j] + u1[i][j + 1] + u1[i][j - 1]) / pow(delta, 2)));
+                    } else if (i == nx) {
+                        u1[i][j] = (1.0 / (1 + (2 * D * dt / pow(delta, 2)))) * (u0[i][j] - (dt / 2.0) * vx[i][j] * (((u0[0][j] - u0[i - 1][j]) / (2.0 * delta)) + (u1[0][j] - u1[i - 1][j]) / (2.0 * delta)) - (dt / 2) * vy[i][j] * ((u0[i][j + 1] - u0[i][j - 1]) / (2.0 * delta) + (u1[i][j + 1] - u1[i][j - 1]) / (2.0 * delta)) + dt / 2.0 * D * ((u0[0][j] + u0[i - 1][j] + u0[i][j + 1] + u0[i][j - 1] - 4 * u0[i][j]) / pow(delta, 2) + (u1[0][j] + u1[i - 1][j] + u1[i][j + 1] + u1[i][j - 1]) / pow(delta, 2)));
+                    } else {
+                        u1[i][j] = (1.0 / (1 + (2 * D * dt / pow(delta, 2)))) * (u0[i][j] - (dt / 2.0) * vx[i][j] * (((u0[i + 1][j] - u0[i - 1][j]) / (2.0 * delta)) + (u1[i + 1][j] - u1[i - 1][j]) / (2.0 * delta)) - (dt / 2) * vy[i][j] * ((u0[i][j + 1] - u0[i][j - 1]) / (2.0 * delta) + (u1[i][j + 1] - u1[i][j - 1]) / (2.0 * delta)) + dt / 2.0 * D * ((u0[i + 1][j] + u0[i - 1][j] + u0[i][j + 1] + u0[i][j - 1] - 4 * u0[i][j]) / pow(delta, 2) + (u1[i + 1][j] + u1[i - 1][j] + u1[i][j + 1] + u1[i][j - 1]) / pow(delta, 2)));
+                    }
+                }
+            }
+        }
+        for (int i = 0; i < u0.size(); i++) {
+            std::memcpy(u0[i].data(), u1[i].data(), u0[i].size() * sizeof(double));
+        }
+        double c = 0.;
+        double xsr = 0.;
+        for (int i = 0; i <= nx; i++) {
+            for (int j = 0; j <= ny; j++) {
+                c += u0[i][j];
+                xsr += x(i) * u0[i][j];
+            }
+        }
+        c *= (delta * delta);
+        xsr *= (delta * delta);
+        fprintf(f, "%f %lf %lf\n", it * dt, c, xsr);
+    }
+
+    fclose(f);
+}
+
+void solution(double D, const int it_max) {
     auto u0 = fill_u0();
     matrix<nx + 1, ny + 1> u1 = { { 0 } };
     auto psi = fill_psi();
@@ -94,9 +137,12 @@ void solution(double D) {
         }
     }
     v_max = std::sqrt(v_max);
+    const double dt = delta / (4 * v_max);
+    iter_p(u0, u1, vx, vy, dt, D, it_max);
 }
 
 int main() {
-    fill_psi();
+    solution(0, 1000);
+    solution(0.1, 1000);
     return 0;
 }
