@@ -83,6 +83,7 @@ matrix<nx + 1, ny + 1> fill_psi() {
 
 void iter_p(matrix<nx + 1, ny + 1>& u0, matrix<nx + 1, ny + 1>& u1, const matrix<nx + 1, ny + 1>& vx, const matrix<nx + 1, ny + 1>& vy, const double dt, const double D, const int it_max) {
     FILE* f = fopen(("out_" + std::to_string(D) + " " + std::to_string(dt) + ".dat").c_str(), "w");
+    int p = 0;
     for (int it = 1; it <= it_max; it++) {
         for (int i = 0; i < u0.size(); i++) {
             std::memcpy(u1[i].data(), u0[i].data(), u0[i].size() * sizeof(double));
@@ -118,16 +119,47 @@ void iter_p(matrix<nx + 1, ny + 1>& u0, matrix<nx + 1, ny + 1>& u1, const matrix
         c *= (delta * delta);
         xsr *= (delta * delta);
         fprintf(f, "%f %lf %lf\n", it * dt, c, xsr);
+        if(it * dt >= (p * it_max * dt) / 50.0){
+            std::cout << ("out/zad" + std::to_string(D) + "_it=" + std::to_string(p) + ".txt") << "\n";
+            FILE* fi = fopen(("out/zad" + std::to_string(D) + "_it=" + std::to_string(p) + ".txt").c_str(), "wb");
+            p++;
+            for (int i = 0; i < u0.size(); i++) {
+                for(int j = 0; j < u0[i].size(); j++){
+                    fprintf(fi, "%d %d %lf\n", i, j, u0[i][j]);
+                }
+                fprintf(fi, "\n");
+            }
+            fclose(fi);
+        }
     }
 
     fclose(f);
 }
 
-void solution(double D, const int it_max) {
+void solution(double D, const int it_max, const matrix<nx + 1, ny + 1>& psi) {
     auto u0 = fill_u0();
     matrix<nx + 1, ny + 1> u1 = { { 0 } };
-    auto psi = fill_psi();
     auto [vx, vy] = fill_v(psi);
+    static bool plot_v = true;
+    if(plot_v){
+        FILE* fi = fopen(("vx.dat"), "wb");
+        for (int i = 0; i < vx.size(); i++) {
+            for(int j = 0; j < vx[i].size(); j++){
+                fprintf(fi, "%f %f %lf\n", i * delta, j * delta, vx[i][j]);
+            }
+            fprintf(fi, "\n");
+        }
+        fclose(fi);
+        fi = fopen(("vy.dat"), "wb");
+        for (int i = 0; i < vy.size(); i++) {
+            for(int j = 0; j < vy[i].size(); j++){
+                fprintf(fi, "%f %f %lf\n", i * delta, j * delta, vy[i][j]);
+            }
+            fprintf(fi, "\n");
+        }
+        fclose(fi);
+        plot_v = false;
+    }
     double v_max = 0;
     for (int i = 0; i <= nx; i++) {
         for (int j = 0; j <= ny; j++) {
@@ -142,7 +174,8 @@ void solution(double D, const int it_max) {
 }
 
 int main() {
-    solution(0, 1000);
-    solution(0.1, 1000);
+    auto psi = fill_psi();
+    solution(0, 10000, psi);
+    solution(0.1, 10000, psi);
     return 0;
 }

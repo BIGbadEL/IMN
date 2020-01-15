@@ -29,7 +29,8 @@ clean:
 	rm -f $(EXEC)
 
 run: $(EXEC)
+	mkdir out
 	./$(EXEC)
-	#gnuplot 6.plot
+	gnuplot 8.plot
 
 -include $(DEPS)
