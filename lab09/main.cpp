@@ -167,8 +167,6 @@ int main() {
 
 
     gsl_linalg_LU_decomp(a, p, &signum);
-    // tu program wpisuje x, y oraz T(x, y)
-    // tu program wpisuje x, y oraz pow(nabla, 2)*T(x, y)
 
     for( int it=1;  it<=IT_MAX; it++ ){
         gsl_blas_dgemv( CblasNoTrans, 1, b, T, 0, d );
